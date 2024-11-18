@@ -1,8 +1,11 @@
 const TelegramBot = require('node-telegram-bot-api');
 const fs = require('fs');
 const bot = new TelegramBot('7637469255:AAFBthW1KsfgQGWg0GTOQeDe5GAhQOOU6zs', { polling: true }); // api бота
+const alive = require('./keep_alive.js');
 //const needchannelid = "-1002366112090"; // сюда нужно вставить id чата с каналом постов
-const needchannelid = "-1002435725660";
+const needchannelid1 = "-1002435725660";
+const needchannelid2 = "-1002326417741";
+const needchannelid3 = "-1002366112090";
 const usersFile = 'users.json';
 function initializeUsersFile() {
     if (!fs.existsSync(usersFile)) {
@@ -106,7 +109,7 @@ async function sendMessageToUsers(channelMessage) {
 }
 
 bot.on('channel_post', async (msg) => {
-    if (msg.chat.id == needchannelid)
+    if (msg.chat.id == needchannelid1)
     {
         console.log(`Получено сообщение из канала ${msg.chat.id}: ${msg.message_id}`);
         await sendMessageToUsers(msg);
