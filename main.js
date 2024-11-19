@@ -50,22 +50,7 @@ bot.onText(/\/start/, (msg) => {
         ]
     } })
     addUser(chatId);
-    bot.sendMessage(chatId, 'Вы успешно подписались на рассылку! Для отмены подписки, введите: /unsubscribe.'); // 
 });
-
-/*
-bot.onText(/\/subscribe/, (msg) => {
-    const chatId = msg.chat.id;
-    addUser(chatId);
-    bot.sendMessage(chatId, 'Вы успешно подписались на рассылку!');
-});
-*/
-bot.onText(/\/unsubscribe/, (msg) => {
-    const chatId = msg.chat.id;
-    removeUser(chatId);
-    bot.sendMessage(chatId, 'Вы успешно отписались от рассылки!');
-});
-
 async function sendMessageToUsers(channelMessage) {
     const users = getUsers();
     const maxMessagesPerSecond = 20; // Лимит сообщений
@@ -75,30 +60,60 @@ async function sendMessageToUsers(channelMessage) {
 
     for (const userId of users) {
         try {
+            // Проверяем тип контента и отправляем его как новое сообщение
             if (channelMessage.text) {
-                await bot.sendMessage(userId, channelMessage.text);
+                await bot.sendMessage(userId, channelMessage.text, {
+                    reply_markup: {
+                        inline_keyboard: [
+                            [{ text: 'Go to News', url: 'https://t.me/The_TimesNews' }],
+                            [{ text: 'Offer News', url: 'https://t.me/TR_808' }]
+                        ]
+                    }
+                });
             } else if (channelMessage.photo) {
                 const photoId = channelMessage.photo[channelMessage.photo.length - 1].file_id; // Последняя версия фото — наибольшее качество
-                await bot.sendPhoto(userId, photoId, { caption: channelMessage.caption || '' });
+                await bot.sendPhoto(userId, photoId, {
+                    caption: channelMessage.caption || '',
+                    reply_markup: {
+                        inline_keyboard: [
+                            [{ text: 'Go to News', url: 'https://t.me/The_TimesNews' }],
+                            [{ text: 'Offer News', url: 'https://t.me/TR_808' }]
+                        ]
+                    }
+                });
             } else if (channelMessage.video) {
                 const videoId = channelMessage.video.file_id;
-                await bot.sendVideo(userId, videoId, { caption: channelMessage.caption || '' });
+                await bot.sendVideo(userId, videoId, {
+                    caption: channelMessage.caption || '',
+                    reply_markup: {
+                        inline_keyboard: [
+                            [{ text: 'Go to News', url: 'https://t.me/The_TimesNews' }],
+                            [{ text: 'Offer News', url: 'https://t.me/TR_808' }]
+                        ]
+                    }
+                });
             } else if (channelMessage.document) {
                 const documentId = channelMessage.document.file_id;
-                await bot.sendDocument(userId, documentId, { caption: channelMessage.caption || '' });
+                await bot.sendDocument(userId, documentId, {
+                    caption: channelMessage.caption || '',
+                    reply_markup: {
+                        inline_keyboard: [
+                            [{ text: 'Go to News', url: 'https://t.me/The_TimesNews' }],
+                            [{ text: 'Offer News', url: 'https://t.me/TR_808' }]
+                        ]
+                    }
+                });
             }
-            await bot.sendMessage(userId, 'Please, hop on our original channel!', {
-                reply_markup: {
-                    inline_keyboard: [
-                        [{ text: 'Go to news', url: 'https://t.me/The_TimesNews' }],
-                        [{ text: 'Offer news', url: 'https://t.me/TR_808' }]
-                    ]
-                }
-            });
 
             sentCount++;
         } catch (error) {
-            console.error(`Ошибка при отправке сообщения пользователю ${userId}:`, error.message);
+            if (error.response && error.response.statusCode == 403){
+                console.log(`Пользователь ${userId} заблокировал бота. Удалён из БД.`);
+                removeUser(userId);
+            }
+            else{
+                console.error(`Ошибка при отправке сообщения пользователю ${userId}:`, error.message);
+            }
         }
 
         // Задержка между сообщениями
@@ -109,7 +124,7 @@ async function sendMessageToUsers(channelMessage) {
 }
 
 bot.on('channel_post', async (msg) => {
-    if (msg.chat.id == needchannelid1)
+    if (msg.chat.id == needchannelid3)
     {
         console.log(`Получено сообщение из канала ${msg.chat.id}: ${msg.message_id}`);
         await sendMessageToUsers(msg);
